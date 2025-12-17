@@ -1,0 +1,77 @@
+import aoc
+import file
+import testing
+
+
+def parse_data(data: list[str]) -> dict[str, set[str]]:
+    g = {}
+    for line in data:
+        l = line.split(": ")
+        n = l[0]
+        e = l[1]
+        g[n] = set(e.split(" "))
+    return g
+
+def solve(data, start, search: set[str]=set(), cache={}) -> int:
+    # Count all the paths from start to "out"
+    count = 0
+    for n in data[start]:
+        print("From ", start, " to ", n, " with search=", search)
+        if n == "out":
+            print("Reached out from ", start, " with search=", search)
+            if len(search) == 0:
+                return 1
+            return 0
+        if n in search:
+            new_search = set(search) - {n}
+        else:
+            new_search = search
+        key = ",".join(sorted([start, n])) + "|" + ",".join(sorted(new_search))
+        if key not in cache:
+            cache[key] = solve(data, n, new_search, cache)
+        count += cache[key]
+    return count
+
+sample_data1 = """aaa: you hhh
+you: bbb ccc
+bbb: ddd eee
+ccc: ddd eee fff
+ddd: ggg
+eee: out
+fff: out
+ggg: out
+hhh: ccc fff iii
+iii: out
+"""
+
+def _test_part1():
+    graph = parse_data(sample_data1.splitlines())
+    print("Graph: ", graph)
+    testing.assertEqual(solve(graph, "you"), 5)
+
+sample_data2 = """svr: aaa bbb
+aaa: fft
+fft: ccc
+bbb: tty
+tty: ccc
+ccc: ddd eee
+ddd: hub
+hub: fff
+eee: dac
+dac: fff
+fff: ggg hhh
+ggg: out
+hhh: out
+"""
+
+def _test_part2():
+    graph  = parse_data(sample_data2.splitlines())
+    testing.assertEqual(solve(graph, "svr", {"dac", "fft"}), 2)
+
+actor main(env):
+    f_cap = file.ReadFileCap(file.FileCap(env.cap))
+    data = aoc.read_file(f_cap, 'input/d11.txt')
+    graph = parse_data(data.splitlines())
+    print("Part 1: ", solve(graph, "you"))
+    print("Part 2: ", solve(graph, "svr", {"dac", "fft"}))
+    env.exit(0)

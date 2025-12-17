@@ -1,0 +1,132 @@
+import aoc
+import file
+import testing
+import re
+import math
+
+
+class Point:
+    def __init__(self, x: int, y: int, z: int):
+        self.x = x
+        self.y = y
+        self.z = z
+
+    def __str__(self):
+        return "[{self.x}, {self.y}, {self.z}]"
+        
+    def __repr__(self):
+        return self.__str__()
+
+extension Point (Hashable):
+    def __eq__(self, other):
+        return self.x == other.x and self.y == other.y and self.z == other.z
+
+    def hash(self, hasher):
+        self.x.hash(hasher)
+        self.y.hash(hasher)
+        self.z.hash(hasher)
+
+def parse_data(data: list[str]):
+    points = []
+    for line in data:
+        c = re.split(r",", line.strip())
+        p = Point(int(c[0]), int(c[1]), int(c[2]))
+        points.append(p)
+    d = {}
+    for a in range(len(points)):
+        for b in range(a + 1, len(points)):
+            pa = points[a]
+            pb = points[b]
+            dist = (pa.x - pb.x) ** 2 + (pa.y - pb.y) ** 2 + (pa.z - pb.z) ** 2
+            if dist in d:
+                raise ValueError("Duplicate distance found")
+            d[dist] = set([pa, pb])
+    return points, d
+
+
+def clear[T(Hashable)](s: set[T]):
+    while True:
+        try:
+            s.pop()
+        except ValueError:
+            break
+
+
+def connect(points, distances: dict[int, set[Point]], pairs: ?int=None):
+    circuits = [{p} for p in points]
+    def find_circuit(p):
+        for c in circuits:
+            if p in c:
+                return c
+        raise ValueError("Point not found in any circuit")
+
+    last = None
+    for n, d in enumerate(sorted(distances.keys())):
+        if n == pairs:
+            break
+        pa = distances[d].pop()
+        pb = distances[d].pop()
+        last = (pa, pb)
+        print(f"Pair {n}: {pa} <-> {pb} = {d}")
+        ca = find_circuit(pa)
+        cb = find_circuit(pb)
+        if ca != cb:
+            ca.update(cb)
+            clear(cb)
+            if len(ca) == len(points):
+                print("All points connected")
+                break
+            
+    lens = sorted([len(c) for c in circuits])
+    return lens, last
+
+sample_data = """162,817,812
+57,618,57
+906,360,560
+592,479,940
+352,342,300
+466,668,158
+542,29,236
+431,825,988
+739,650,466
+52,470,668
+216,146,977
+819,987,18
+117,168,530
+805,96,715
+346,949,466
+970,615,88
+941,993,340
+862,61,35
+984,92,344
+425,690,689
+"""
+
+def _test_part1():
+    points, distances = parse_data(sample_data.splitlines())
+    lens, _ = connect(points, distances, 10)
+    testing.assertEqual(lens[-1] * lens[-2] * lens[-3], 40)
+
+def _test_part2():
+    points, distances = parse_data(sample_data.splitlines())
+    _f, last = connect(points, distances)
+    if last is not None:
+        print("Last pair: ", last)
+        testing.assertEqual(last.0.x * last.1.x, 25272)
+    else:
+        raise ValueError("No last pair found")
+
+actor main(env):
+    f_cap = file.ReadFileCap(file.FileCap(env.cap))
+    data = aoc.read_file(f_cap, 'input/d08.txt')
+    points, distances = parse_data(data.splitlines())
+    lens, _ = connect(points, distances, 1000)
+    print("Part 1: ", lens[-1] * lens[-2] * lens[-3]) # 4896 too low
+    
+    points, distances = parse_data(data.splitlines())
+    _f, last = connect(points, distances)
+    if last is not None:
+        print("Part 2: ", last.0.x * last.1.x)
+    else:
+        raise ValueError("No last pair found")
+    env.exit(0)

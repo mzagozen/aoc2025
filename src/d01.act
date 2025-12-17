@@ -1,0 +1,60 @@
+import aoc
+import file
+import testing
+
+
+def parse_data(data: list[str]) -> list[int]:
+    return [int(x[1:]) * (-1 if x[0] == 'L' else 1) for x in data]
+
+def part1(data):
+    dial = 50
+    count = 0
+    for rotation in data:
+        dial += rotation
+        if dial % 100 == 0:
+            count += 1
+    return count
+
+def part2(data):
+    dial = 50
+    prev = dial
+    count = 0
+    for rotation in data:
+        prev = dial
+        count += abs(rotation) // 100
+
+        dial = (100 + (dial + rotation) % 100) % 100
+        print(f"Dial after: {dial}")
+        if prev != 0:
+            if dial == 0 or (rotation > 0 and dial < prev) or (rotation < 0 and dial > prev):
+                print("Crossed zero")
+                count += 1
+
+    return count
+
+sample_data = """L68
+L30
+R48
+L5
+R60
+L55
+L1
+L99
+R14
+L82"""
+
+def _test_part1():
+    rotations = parse_data(sample_data.splitlines())
+    testing.assertEqual(part1(rotations), 3)
+
+def _test_part2():
+    rotations  = parse_data(sample_data.splitlines())
+    testing.assertEqual(part2(rotations), 6)
+
+actor main(env):
+    f_cap = file.ReadFileCap(file.FileCap(env.cap))
+    data = aoc.read_file(f_cap, 'input/d01.txt')
+    rotations = parse_data(data.splitlines())
+    print("Part 1: ", part1(rotations))
+    print("Part 2: ", part2(rotations)) # 6158 too high, 6107 too low
+    env.exit(0)

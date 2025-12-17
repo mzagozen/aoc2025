@@ -1,0 +1,75 @@
+import aoc
+import file
+import testing
+
+
+def complex_grid(data: list[str]) -> dict[complex, str]:
+    g = {}
+    for x, r in enumerate(data):
+        for y, c in enumerate(list(r)):
+            g[complex.from_real_imag(y, x)] = c
+    return g
+
+def part1(data):
+    # create a set of all 8 directions
+    dirs = set()
+    for i in [-1, 0, 1]:
+        for j in [-1, 0, 1]:
+            if i == 0 and j == 0:
+                continue
+            dirs.add(complex.from_real_imag(i, j))
+    count = 0
+    candidates = set()
+    for z, u in data.items():
+        if u == ".":
+            continue
+        papers = set()
+        for d in dirs:
+            step = z + d
+            v = data.get(step)
+            if v == "@":
+                papers.add(step)
+            if len(papers) > 3:
+                break
+        else:
+            candidates.add(z)
+            count += 1
+    return len(candidates), candidates
+    
+def part2(data):
+    count = 0
+    while True:
+        c, p = part1(data)
+        if c == 0:
+            break
+        count += c
+        for z in p:
+            data[z] = "."
+    return count
+
+sample_data = """..@@.@@@@.
+@@@.@.@.@@
+@@@@@.@.@@
+@.@@@@..@.
+@@.@@@@.@@
+.@@@@@@@.@
+.@.@.@.@@@
+@.@@@.@@@@
+.@@@@@@@@.
+@.@.@@@.@."""
+
+def _test_part1():
+    grid = complex_grid(sample_data.splitlines())
+    testing.assertEqual(part1(grid).0, 13)
+
+def _test_part2():
+    grid = complex_grid(sample_data.splitlines())
+    testing.assertEqual(part2(grid), 43)
+
+actor main(env):
+    f_cap = file.ReadFileCap(file.FileCap(env.cap))
+    data = aoc.read_file(f_cap, 'input/d04.txt').splitlines()
+    grid = complex_grid(data)
+    print("Part 1: ", part1(grid).0)
+    print("Part 2: ", part2(grid))
+    env.exit(0)

@@ -1,0 +1,89 @@
+import aoc
+import file
+import testing
+import re
+
+def mul(a, b):
+    return a * b
+    
+def add(a, b):
+    return a + b
+
+def parse_data1(data: list[str]) -> (dict[int, list[int]], list[(pure(int, int) -> int, int)]):
+    numbers = {}
+    ops = []
+
+    for line in data:
+        if line[0] != "*":
+            for i, n in enumerate(re.split(r"\s+", line.strip())):
+                if i not in numbers:
+                    numbers[i] = []
+                numbers[i].append(int(n))
+        else:
+            ops = [(mul, 1) if op == "*" else (add, 0) for op in re.split(r"\s+", line.strip())]
+
+    return numbers, ops
+
+def parse_data2(data: list[str]) -> (dict[int, list[int]], list[(pure(int, int) -> int, int)]):
+# Read numbers from columns - most significant digit on top
+    ops = []
+    cols = []
+    for i, c in enumerate((data[-1])):
+        if c != " ":
+            ops.append((mul, 1) if c == "*" else (add, 0))
+            cols.append(i)
+
+    numbers = {}
+    col = 0
+    for i in range(0, len(data[-1])):
+        n = "".join([data[j][i] for j in range(0, len(data)-1)]).strip()
+        if n == " ":
+            col += 1
+            continue
+        if col not in numbers:
+            numbers[col] = []
+        numbers[col].append(int(n))
+
+    return numbers, ops
+
+def fold(l, f, acc):
+    if len(l) == 0:
+        return acc
+    else:
+        return fold(l[1:], f, f(acc, l[0]))
+
+def part1(numbers, ops):
+    sum = 0
+    for (op, init), col in zip(ops, range(len(numbers))):
+        r = fold(numbers[col], op, init)
+        sum += r
+    return sum
+
+def part2(numbers, ops):
+    return part1(numbers, ops)
+
+sample_data = """123 328  51 64 
+ 45 64  387 23 
+  6 98  215 314
+*   +   *   +  """
+
+def _test_part1():
+    numbers, ops = parse_data1(sample_data.splitlines())
+    testing.assertEqual(part1(numbers, ops), 4277556)
+
+def _test_part2():
+    numbers, ops = parse_data2(sample_data.splitlines())
+    testing.assertEqual(part2(numbers, ops), 3263827)
+
+actor main(env):
+    f_cap = file.ReadFileCap(file.FileCap(env.cap))
+    data = aoc.read_file(f_cap, 'input/d06.txt')
+    numbers, ops = parse_data1(data.splitlines())
+    print("Part 1: ", part1(numbers, ops))
+    numbers, ops = parse_data2(data.splitlines())
+    print("Part 2: ", part2(numbers, ops)) 
+    env.exit(0)
+
+def _test_fold():
+    testing.assertEqual(fold([1, 2, 3, 4], add, 0), 10)
+    testing.assertEqual(fold([1, 2, 3, 4], mul, 1), 24)

@@ -1,0 +1,77 @@
+import aoc
+import file
+import testing
+
+
+def parse_data(data: list[str]) -> (list[(a: int, b: int)], list[int]):
+    ranges = []
+    numbers = []
+    for line in data:
+        if line == "":
+            continue
+        if '-' in line:
+            r = line.split('-')
+            ranges.append((a=int(r[0]), b=int(r[1])))
+        else:
+            numbers.append(int(line))
+    return ranges, numbers
+
+def part1(ranges: list[(a: int, b: int)], ingredients: list[int]):
+    fresh = 0
+    for ingredient in ingredients:
+        for r in ranges:
+            if r.a <= ingredient and ingredient <= r.b:
+                fresh += 1
+                break
+    return fresh
+
+def merge(ranges):
+    merged = []
+    changed = False
+    for r in ranges:
+        for i, mr in enumerate(merged):
+            if not (r.b < mr.a or r.a > mr.b):
+                merged[i] = (a=min([r.a, mr.a]), b=max([r.b, mr.b]))
+                changed = True
+                break
+        else:
+            merged.append(r)
+    return merged, changed
+    
+def part2(ranges):
+    count = 0
+    while True:
+        ranges, changed = merge(ranges)
+        if not changed:
+            break
+    for mr in ranges:
+        count += mr.b - mr.a + 1
+    return count
+
+sample_data = """3-5
+10-14
+16-20
+12-18
+
+1
+5
+8
+11
+17
+32"""
+
+def _test_part1():
+    ranges, ingredients = parse_data(sample_data.splitlines())
+    testing.assertEqual(part1(ranges, ingredients), 3)
+
+def _test_part2():
+    ranges, _ = parse_data(sample_data.splitlines())
+    testing.assertEqual(part2(ranges), 14)
+
+actor main(env):
+    f_cap = file.ReadFileCap(file.FileCap(env.cap))
+    data = aoc.read_file(f_cap, 'input/d05.txt')
+    ranges, ingredients = parse_data(data.splitlines())
+    print("Part 1: ", part1(ranges, ingredients))
+    print("Part 2: ", part2(ranges)) 
+    env.exit(0)

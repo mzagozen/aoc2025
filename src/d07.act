@@ -1,0 +1,90 @@
+import aoc
+import file
+import testing
+import re
+
+def mul(a, b):
+    return a * b
+    
+def add(a, b):
+    return a + b
+
+def parse_data(data: list[str]) -> (int, list[set[int]]):
+    source = data[0].index("S")
+    splitters = []
+    for r in range(1, len(data)):
+        rs = set()
+        n = 0
+        while True:
+            i = data[r].find("^", n)
+            if i == -1:
+                break
+            rs.add(i)
+            n = i + 1
+        splitters.append(rs)
+    return source, splitters
+
+
+def part1(source, splitters):
+    sum = 0
+    beams = set([source])
+    for s in splitters:
+        for hit in beams & s:
+            beams.discard(hit)
+            beams.add(hit - 1)
+            beams.add(hit + 1)
+            sum += 1
+    return sum
+
+# Use cache dict to avoid recomputing beam paths for visited splitters
+def part2(source, splitters, cache={}):
+    sum = 0
+    if len(splitters) == 0:
+        return 0
+    # print("At level ", len(splitters), " source=", source)
+    if source in splitters[0]:
+        # print("Hit at ", source)
+        z = complex.from_real_imag(source, len(splitters))
+        if z in cache:
+            sum += cache[z]
+        else:
+            res =  part2(source - 1, splitters[1:], cache) + part2(source + 1, splitters[1:], cache) + 1
+            cache[z] = res
+            sum += res
+    else:
+        sum += part2(source, splitters[1:], cache)
+    return sum
+
+sample_data = """.......S.......
+...............
+.......^.......
+...............
+......^.^......
+...............
+.....^.^.^.....
+...............
+....^.^...^....
+...............
+...^.^...^.^...
+...............
+..^...^.....^..
+...............
+.^.^.^.^.^...^.
+...............
+"""
+
+def _test_part1():
+    source, splitters = parse_data(sample_data.splitlines())
+    testing.assertEqual(part1(source, splitters), 21)
+
+def _test_part2():
+    source, splitters = parse_data(sample_data.splitlines())
+    testing.assertEqual(1+part2(source, splitters), 40)
+
+actor main(env):
+    f_cap = file.ReadFileCap(file.FileCap(env.cap))
+    data = aoc.read_file(f_cap, 'input/d07.txt')
+    source, splitters = parse_data(data.splitlines())
+    print("Part 1: ", part1(source, splitters))
+    print("Part 2: ", 1+part2(source, splitters)) 
+    env.exit(0)

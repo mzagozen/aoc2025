@@ -1,0 +1,65 @@
+import aoc
+import file
+import testing
+
+
+def list_int(ls: str) -> list[int]:
+    li = []
+    for x in list(ls):
+        i = int(x)
+        if i is not None:
+            li.append(int(x))
+    return li
+
+def parse_data(data) -> list[list[int]]:
+    return [list_int(line) for line in data]
+
+def calculate(bats: list[int], digits) -> int:
+    target = min([digits, len(bats)])
+    drop = len(bats) - target
+    stack = []
+    for digit in bats:
+        while stack and drop and stack[-1] < digit:
+            stack.pop()
+            drop -= 1
+        stack.append(digit)
+    if drop:
+        stack = stack[:-drop]
+    value = 0
+    for digit in stack[:target]:
+        value = value * 10 + digit
+    return value
+
+def part1(data):
+    sum = 0
+    for bats in data:
+        sum += calculate(bats, 2)
+    return sum
+
+
+def part2(data):
+    sum = 0
+    for bats in data:
+        sum += calculate(bats, 12)
+    return sum
+
+sample_data = """987654321111111
+811111111111119
+234234234234278
+818181911112111"""
+
+def _test_part1():
+    bats = parse_data(sample_data.splitlines())
+    testing.assertEqual(part1(bats), 357)
+
+def _test_part2():
+    bats = parse_data(sample_data.splitlines())
+    testing.assertEqual(part2(bats), 3121910778619)
+
+actor main(env):
+    f_cap = file.ReadFileCap(file.FileCap(env.cap))
+    data = aoc.read_file(f_cap, 'input/d03.txt').splitlines()
+    bats = parse_data(data)
+    print("Part 1: ", part1(bats))
+    print("Part 2: ", part2(bats))
+    env.exit(0)

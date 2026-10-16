@@ -19,7 +19,7 @@ def calculate(bats: list[int], digits) -> int:
     drop = len(bats) - target
     stack = []
     for digit in bats:
-        while stack and drop and stack[-1] < digit:
+        while stack and drop > 0 and stack[-1] < digit:
             stack.pop()
             drop -= 1
         stack.append(digit)

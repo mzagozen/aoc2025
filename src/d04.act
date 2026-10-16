@@ -10,7 +10,7 @@ def complex_grid(data: list[str]) -> dict[complex, str]:
             g[complex.from_real_imag(y, x)] = c
     return g
 
-def part1(data):
+def part1(data: dict[complex, str]):
     # create a set of all 8 directions
     dirs = set()
     for i in [-1, 0, 1]:

@@ -37,7 +37,7 @@ def parse_data2(data: list[str]) -> (dict[int, list[int]], list[(pure(int, int) 
     col = 0
     for i in range(0, len(data[-1])):
         n = "".join([data[j][i] for j in range(0, len(data)-1)]).strip()
-        if n == " ":
+        if n == "":
             col += 1
             continue
         if col not in numbers:
